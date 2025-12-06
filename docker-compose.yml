@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  db:
+    image: mysql:8.0
+    container_name: betting-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: roottest  # 根密码
+      MYSQL_DATABASE: test           # 自动创建的数据库名
+      MYSQL_USER: roottest           # 创建的用户名
+      MYSQL_PASSWORD: roottest       # 创建的用户密码
+    ports:
+      - "3306:3306"  # 主机端口:容器端口
+    volumes:
+      - mysql-data:/var/lib/mysql  # 持久化MySQL数据
+      - ./lib/init.sql:/docker-entrypoint-initdb.d/01-init.sql  # 自动执行初始化脚本
+      - ./lib/session.sql:/docker-entrypoint-initdb.d/02-session.sql  # 自动执行会话表初始化脚本
+    networks:
+      - betting-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Node.js应用服务
+  app:
+    image: node:18-alpine
+    container_name: betting-app
+    restart: always
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=roottest
+      - DB_PASSWORD=roottest
+      - DB_NAME=test
+      - NODE_PATH=/app/node_modules
+      - PATH=/app/node_modules/.bin:$PATH
+    ports:
+      - "3000:3000"  # 主机端口:容器端口
+    volumes:
+      - ./:/app  # 挂载当前目录到容器
+    command: >
+      sh -c "npm install --legacy-peer-deps && chmod +x /app/node_modules/.bin/next && /app/node_modules/.bin/next dev --port 3000"
+    networks:
+      - betting-network
+    depends_on:
+      db:
+        condition: service_healthy  # 等待数据库健康后再启动
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+# 网络配置
+networks:
+  betting-network:
+    driver: bridge
+
+# 卷配置
+volumes:
+  mysql-data:  # MySQL数据持久化卷
+    driver: local
