@@ -28,6 +28,11 @@ export default function Admin() {
     balance: '',
   });
 
+  // 用户搜索状态
+  const [searchUsername, setSearchUsername] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchError, setSearchError] = useState('');
+
   // 获取用户押注历史
   const fetchUserBets = async (userId) => {
     try {
@@ -37,6 +42,38 @@ export default function Admin() {
       setSelectedUser(userId);
     } catch (err) {
       setMessage('获取用户押注历史失败');
+    }
+  };
+
+  // 搜索用户
+  const handleSearchUser = async (e) => {
+    e.preventDefault();
+    setSearchError('');
+    setSearchResult(null);
+    setUserBalanceUpdate({ user_id: '', balance: '' });
+
+    if (!searchUsername.trim()) {
+      setSearchError('请输入用户名');
+      return;
+    }
+
+    try {
+      // 这里需要导入pool，但当前文件中没有导入，我们需要使用fetch API来搜索用户
+      const res = await fetch(`/api/admin/users?username=${encodeURIComponent(searchUsername.trim())}`);
+      const data = await res.json();
+      
+      if (res.ok && data.length > 0) {
+        setSearchResult(data[0]);
+        setUserBalanceUpdate({
+          user_id: data[0].id,
+          balance: '',
+        });
+      } else {
+        setSearchError('没有找到该用户');
+      }
+    } catch (error) {
+      setSearchError('搜索用户失败');
+      console.error('Search user error:', error);
     }
   };
 
@@ -403,39 +440,67 @@ export default function Admin() {
         <h2>管理用户余额</h2>
         <div style={{ marginBottom: 20, padding: 15, border: '1px solid #ccc', borderRadius: 5 }}>
           <h3>更新用户余额</h3>
-          <form onSubmit={handleUpdateBalance}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-              <div>
-                <label>选择用户:</label>
-                <select
-                  value={userBalanceUpdate.user_id}
-                  onChange={(e) => setUserBalanceUpdate({ ...userBalanceUpdate, user_id: e.target.value })}
-                  required
-                  style={{ width: '100%', padding: 8, marginTop: 5 }}
-                >
-                  <option value="">选择用户</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.username} (当前余额: $${typeof user.balance === 'number' ? user.balance.toFixed(2) : parseFloat(user.balance || 0).toFixed(2)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label>新余额:</label>
+          
+          {/* 搜索用户表单 */}
+          <form onSubmit={handleSearchUser} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <label>搜索用户名:</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0.00"
-                  value={userBalanceUpdate.balance}
-                  onChange={(e) => setUserBalanceUpdate({ ...userBalanceUpdate, balance: e.target.value })}
+                  type="text"
+                  value={searchUsername}
+                  onChange={(e) => setSearchUsername(e.target.value)}
                   required
+                  placeholder="输入用户名"
                   style={{ width: '100%', padding: 8, marginTop: 5 }}
                 />
               </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button type="submit" style={{ padding: 8 }}>搜索</button>
+              </div>
             </div>
-            <button type="submit" style={{ padding: 10 }}>更新余额</button>
           </form>
+
+          {/* 搜索结果 */}
+          {searchError && (
+            <div style={{ color: 'red', marginBottom: 15 }}>{searchError}</div>
+          )}
+
+          {searchResult && (
+            <form onSubmit={handleUpdateBalance}>
+              <div style={{ marginBottom: 15 }}>
+                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>搜索结果:</p>
+                <p style={{ margin: '5px 0' }}>用户名: {searchResult.username}</p>
+                <p style={{ margin: '5px 0' }}>当前余额: ${typeof searchResult.balance === 'number' ? searchResult.balance.toFixed(2) : parseFloat(searchResult.balance || 0).toFixed(2)} USDT</p>
+                <p style={{ margin: '5px 0' }}>管理员: {searchResult.is_admin ? '是' : '否'}</p>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label>用户ID:</label>
+                  <input
+                    type="text"
+                    value={searchResult.id}
+                    readOnly
+                    style={{ width: '100%', padding: 8, marginTop: 5, backgroundColor: '#f5f5f5' }}
+                  />
+                </div>
+                <div>
+                  <label>新余额:</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.00"
+                    value={userBalanceUpdate.balance}
+                    onChange={(e) => setUserBalanceUpdate({ ...userBalanceUpdate, balance: e.target.value })}
+                    required
+                    style={{ width: '100%', padding: 8, marginTop: 5 }}
+                  />
+                </div>
+              </div>
+              <button type="submit" style={{ padding: 10 }}>更新余额</button>
+            </form>
+          )}
         </div>
 
         <h3>用户列表</h3>
@@ -454,7 +519,7 @@ export default function Admin() {
               <tr key={user.id}>
                 <td style={{ border: '1px solid #ccc', padding: 8 }}>{user.id}</td>
                 <td style={{ border: '1px solid #ccc', padding: 8 }}>{user.username}</td>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>${typeof user.balance === 'number' ? user.balance.toFixed(2) : parseFloat(user.balance || 0).toFixed(2)}</td>
+                <td style={{ border: '1px solid #ccc', padding: 8 }}>${typeof user.balance === 'number' ? user.balance.toFixed(2) : parseFloat(user.balance || 0).toFixed(2)} USDT</td>
                 <td style={{ border: '1px solid #ccc', padding: 8 }}>{user.is_admin ? '是' : '否'}</td>
                 <td style={{ border: '1px solid #ccc', padding: 8 }}>
                   <button onClick={() => fetchUserBets(user.id)} style={{ marginRight: 10, padding: 8 }}>
@@ -493,7 +558,7 @@ export default function Admin() {
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>{bet.team1}</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>{bet.team2}</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>{bet.team === 'team1' ? bet.team1 : bet.team2}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 8 }}>${typeof bet.amount === 'number' ? bet.amount.toFixed(2) : parseFloat(bet.amount || 0).toFixed(2)}</td>
+                      <td style={{ border: '1px solid #ccc', padding: 8 }}>${typeof bet.amount === 'number' ? bet.amount.toFixed(2) : parseFloat(bet.amount || 0).toFixed(2)} USDT</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>{typeof bet.odd === 'number' ? bet.odd.toFixed(2) : parseFloat(bet.odd || 0).toFixed(2)}</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>{bet.status === 'pending' ? '待结算' : bet.status === 'won' ? '获胜' : '失败'}</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>{new Date(bet.created_at).toLocaleString()}</td>
@@ -511,14 +576,5 @@ export default function Admin() {
   );
 }
 
-// 添加metadata
-export async function getStaticProps() {
-  return {
-    props: {
-      metadata: {
-        title: '管理面板 - 博彩网站',
-        language: 'zh-cn',
-      },
-    },
-  };
-}
+// 移除不兼容的metadata API，使用Next.js Pages Router的方式
+// 在Next.js Pages Router中，metadata通常通过next/head组件设置

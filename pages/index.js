@@ -144,7 +144,7 @@ export default function Home() {
           </div>
           <div>
             <p style={{ margin: 0, fontSize: '1.2rem', color: '#333' }}>当前余额:</p>
-            <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#4CAF50' }}>${balance.toFixed(2)}</p>
+            <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#4CAF50' }}>${balance.toFixed(2)} USDT</p>
           </div>
         </div>
         <button 
@@ -507,7 +507,7 @@ export default function Home() {
                       {bet.team === 'team1' ? bet.team1 : bet.team2}
                     </td>
                     <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center', fontWeight: 'bold' }}>
-                      ${bet.amount.toFixed(2)}
+                      ${bet.amount.toFixed(2)} USDT
                     </td>
                     <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center', fontWeight: 'bold' }}>
                       {bet.odd.toFixed(2)}
@@ -564,14 +564,5 @@ export default function Home() {
   );
 }
 
-// 添加metadata
-export async function getStaticProps() {
-  return {
-    props: {
-      metadata: {
-        title: '博彩网站 - 首页',
-        language: 'zh-cn',
-      },
-    },
-  };
-}
+// 移除不兼容的metadata API，使用Next.js Pages Router的方式
+// 在Next.js Pages Router中，metadata通常通过next/head组件设置

@@ -95,14 +95,5 @@ export default function Register() {
   );
 }
 
-// 添加metadata
-export async function getStaticProps() {
-  return {
-    props: {
-      metadata: {
-        title: '注册 - 博彩网站',
-        language: 'zh-cn',
-      },
-    },
-  };
-}
+// 移除不兼容的metadata API，使用Next.js Pages Router的方式
+// 在Next.js Pages Router中，metadata通常通过next/head组件设置
