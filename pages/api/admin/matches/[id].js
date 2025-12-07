@@ -1,9 +1,30 @@
-import pool from '../../../../lib/db';
+const pool = require('../../../../lib/db');
 
 export default async function handler(req, res) {
-  if (req.method === 'DELETE') {
-    const { id } = req.query;
+  const { id } = req.query;
 
+  if (req.method === 'PUT') {
+    const { action } = req.body;
+
+    try {
+      if (action === 'lock') {
+        // 封盘操作
+        console.log('Attempting to lock match:', id);
+        console.log('Using action:', action);
+        const [result] = await pool.query(
+          'UPDATE matches SET status = ? WHERE id = ? AND status = ?',
+          ['locked', id, 'pending']
+        );
+        console.log('Update result:', result);
+        res.status(200).json({ message: 'Match locked successfully' });
+      } else {
+        res.status(400).json({ message: 'Invalid action' });
+      }
+    } catch (error) {
+      console.error('Lock match error:', error);
+      res.status(500).json({ message: 'Database error', error: error.message });
+    }
+  } else if (req.method === 'DELETE') {
     try {
       // 开始事务
       await pool.query('START TRANSACTION');
@@ -24,7 +45,7 @@ export default async function handler(req, res) {
       res.status(500).json({ message: 'Database error' });
     }
   } else {
-    res.setHeader('Allow', ['DELETE']);
+    res.setHeader('Allow', ['PUT', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

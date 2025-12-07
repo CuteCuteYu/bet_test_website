@@ -248,6 +248,45 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 封盘区 */}
+      <section style={{ marginBottom: 40 }}>
+        <h2 style={{ 
+          color: '#333', 
+          fontSize: '2rem',
+          marginBottom: 20,
+          textAlign: 'center',
+          color: '#FF9800'
+        }}>封盘区</h2>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+          gap: 25,
+          marginBottom: 30
+        }}>
+          {matches.filter(match => match.status === 'locked').map((match) => (
+            <div key={match.id} style={{ 
+              backgroundColor: 'white',
+              padding: 20, 
+              borderRadius: 10,
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              opacity: 0.9
+            }}>
+              <h3 style={{ 
+                color: '#333',
+                marginTop: 0,
+                marginBottom: 15,
+                fontSize: '1.5rem'
+              }}>{match.match_name}</h3>
+              <div style={{ marginBottom: 15 }}>
+                <p style={{ fontSize: '1.2rem', margin: '10px 0', color: '#555' }}>{match.team1} vs {match.team2}</p>
+                <p style={{ margin: '10px 0', color: '#666' }}>赔率: {match.team1} - {match.odd1}, {match.team2} - {match.odd2}</p>
+                <p style={{ margin: '10px 0', color: '#888' }}>状态: <span style={{ color: '#FF9800', fontWeight: 'bold' }}>已封盘</span></p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* 已完成的比赛 */}
       <section>
         <h2 style={{ 

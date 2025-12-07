@@ -62,6 +62,7 @@
    - 编辑现有比赛
    - 删除比赛
    - 结算比赛结果
+   - 比赛封盘：禁止用户对特定比赛下注
 2. **管理用户**：
    - 查看所有用户
    - 修改用户余额
@@ -93,7 +94,7 @@
 | team2      | VARCHAR(50)     | NOT NULL                | 队伍2名称          |
 | odd1       | DECIMAL(5, 2)   | NOT NULL                | 队伍1赔率          |
 | odd2       | DECIMAL(5, 2)   | NOT NULL                | 队伍2赔率          |
-| status     | ENUM            | DEFAULT 'pending'       | 状态（pending/completed/cancelled） |
+| status     | ENUM            | DEFAULT 'pending'       | 状态（pending/locked/completed/cancelled） |
 | winner     | ENUM            | DEFAULT NULL            | 获胜方（team1/team2/draw） |
 | created_at | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP | 创建时间           |
 
@@ -221,6 +222,7 @@
    - 编辑比赛：点击比赛列表中的"编辑"按钮
    - 删除比赛：点击比赛列表中的"删除"按钮
    - 结算比赛：点击比赛列表中的"结算"按钮，选择获胜方
+   - 封盘操作：点击比赛列表中的"封盘"按钮，禁止用户下注
 
 2. **管理用户**：
    - 查看用户列表：在"用户管理"标签页查看所有用户

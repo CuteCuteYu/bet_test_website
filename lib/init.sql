@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS matches (
     team2 VARCHAR(50) NOT NULL,
     odd1 DECIMAL(5, 2) NOT NULL,
     odd2 DECIMAL(5, 2) NOT NULL,
-    status ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'locked', 'completed', 'cancelled') DEFAULT 'pending',
     winner ENUM('team1', 'team2', 'draw') DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

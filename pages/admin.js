@@ -312,6 +312,43 @@ export default function Admin() {
                     设置结果
                   </button>
                 )}
+                {match.status === 'pending' && (
+                  <button 
+                    onClick={async () => {
+                      if (confirm('确定要封盘该比赛吗？封盘后将不允许用户继续下注。')) {
+                        try {
+                          const res = await fetch(`/api/admin/matches/${match.id}`, {
+                            method: 'PUT',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ action: 'lock' }),
+                          });
+                          if (res.ok) {
+                            setMessage('比赛封盘成功');
+                            fetchMatches();
+                          } else {
+                            const data = await res.json();
+                            setMessage(data.message || '封盘失败');
+                          }
+                        } catch (err) {
+                          setMessage('发生错误');
+                        }
+                      }
+                    }} 
+                    style={{ 
+                      flex: 1,
+                      padding: 8,
+                      backgroundColor: '#FF9800',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 5,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    封盘
+                  </button>
+                )}
                 <button 
                   onClick={() => handleDeleteMatch(match.id)} 
                   style={{ 
