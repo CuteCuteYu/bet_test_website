@@ -9,10 +9,10 @@ export default async function handler(req, res) {
       // 开始事务
       await pool.query('START TRANSACTION');
 
-      // 更新比赛状态和结果
+      // 更新比赛状态和结果，允许pending和locked状态的比赛设置结果
       await pool.query(
-        'UPDATE matches SET status = ?, winner = ? WHERE id = ? AND status = ?',
-        ['completed', winner, id, 'pending']
+        'UPDATE matches SET status = ?, winner = ? WHERE id = ? AND status IN (?, ?)',
+        ['completed', winner, id, 'pending', 'locked']
       );
 
       // 获取所有与该比赛相关的押注

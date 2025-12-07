@@ -282,18 +282,20 @@ export default function Admin() {
               <p>状态: {match.status === 'pending' ? '待开始' : match.status === 'completed' ? '已完成' : match.status}</p>
               <p>{match.status === 'completed' && `获胜队伍: ${match.winner === 'team1' ? match.team1 : match.team2}`}</p>
               <div style={{ display: 'flex', gap: 10, marginTop: 15 }}>
-                <button onClick={() => handleEditMatch(match)} style={{ 
-                  flex: 1,
-                  padding: 8,
-                  backgroundColor: '#4CAF50',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 5,
-                  cursor: 'pointer'
-                }}>
-                  编辑
-                </button>
-                {match.status === 'pending' && (
+                {(match.status === 'pending' || match.status === 'locked') && (
+                  <button onClick={() => handleEditMatch(match)} style={{ 
+                    flex: 1,
+                    padding: 8,
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 5,
+                    cursor: 'pointer'
+                  }}>
+                    编辑
+                  </button>
+                )}
+                {(match.status === 'pending' || match.status === 'locked') && (
                   <button 
                     onClick={() => {
                       setSelectedMatchForResult(match.id);

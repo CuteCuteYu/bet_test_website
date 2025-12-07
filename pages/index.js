@@ -9,12 +9,26 @@ export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [message, setMessage] = useState('');
   const [username, setUsername] = useState('');
+  const [userBets, setUserBets] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
     fetchMatches();
     fetchUserInfo();
+    fetchUserBets();
   }, []);
+
+  const fetchUserBets = async () => {
+    try {
+      const res = await fetch('/api/bets');
+      if (res.ok) {
+        const data = await res.json();
+        setUserBets(data);
+      }
+    } catch (err) {
+      console.error('获取押注记录失败:', err);
+    }
+  };
 
   const fetchMatches = async () => {
     try {
@@ -78,6 +92,7 @@ export default function Home() {
         setSelectedMatch(null);
         setSelectedTeam(null);
         fetchMatches();
+        fetchUserBets();
       } else {
         setMessage(data.message || '押注失败');
       }
@@ -331,7 +346,7 @@ export default function Home() {
       </section>
 
       {/* 确认押注表单 */}
-      {selectedMatch && selectedTeam && (
+      {selectedMatch && selectedTeam && balance > 0 && (
         <section style={{ 
           marginTop: 40,
           backgroundColor: 'white',
@@ -409,6 +424,142 @@ export default function Home() {
           </form>
         </section>
       )}
+
+      {/* 用户押注记录 */}
+      <section style={{ marginTop: 40 }}>
+        <h2 style={{ 
+          color: '#333', 
+          fontSize: '2rem',
+          marginBottom: 20,
+          textAlign: 'center',
+          color: '#4CAF50'
+        }}>我的押注记录</h2>
+        {userBets.length > 0 ? (
+          <div style={{ 
+            backgroundColor: 'white',
+            padding: 20, 
+            borderRadius: 10,
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+            overflowX: 'auto'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'left',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>比赛名称</th>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'left',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>押注队伍</th>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'center',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>押注金额</th>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'center',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>赔率</th>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'center',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>比赛状态</th>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'center',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>押注结果</th>
+                  <th style={{ 
+                    border: '1px solid #e0e0e0', 
+                    padding: 12,
+                    textAlign: 'center',
+                    backgroundColor: '#f5f9f7',
+                    color: '#333'
+                  }}>押注时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userBets.map((bet) => (
+                  <tr key={bet.id} style={{ 
+                    borderBottom: '1px solid #e0e0e0',
+                    transition: 'background-color 0.2s ease'
+                  }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12 }}>{bet.match_name}</td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12 }}>
+                      {bet.team === 'team1' ? bet.team1 : bet.team2}
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center', fontWeight: 'bold' }}>
+                      ${bet.amount.toFixed(2)}
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center', fontWeight: 'bold' }}>
+                      {bet.odd.toFixed(2)}
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center' }}>
+                      <span style={{ 
+                        padding: '4px 8px',
+                        borderRadius: 12,
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        color: bet.match_status === 'pending' ? '#4CAF50' : 
+                               bet.match_status === 'locked' ? '#FF9800' : 
+                               bet.match_status === 'completed' ? '#666' : '#f44336'
+                      }}>
+                        {bet.match_status === 'pending' ? '待开始' : 
+                         bet.match_status === 'locked' ? '已封盘' : 
+                         bet.match_status === 'completed' ? '已完成' : '已取消'}
+                      </span>
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center' }}>
+                      <span style={{ 
+                        padding: '4px 8px',
+                        borderRadius: 12,
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        color: bet.status === 'pending' ? '#666' : 
+                               bet.status === 'won' ? '#4CAF50' : '#f44336'
+                      }}>
+                        {bet.status === 'pending' ? '待结算' : 
+                         bet.status === 'won' ? '获胜' : '失败'}
+                      </span>
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 12, textAlign: 'center' }}>
+                      {new Date(bet.created_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ 
+            backgroundColor: 'white',
+            padding: 40, 
+            borderRadius: 10,
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+            textAlign: 'center'
+          }}>
+            <p style={{ color: '#666', fontSize: '1.2rem' }}>您还没有任何押注记录</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
